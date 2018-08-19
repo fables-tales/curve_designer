@@ -1,0 +1,16 @@
+body {
+    padding:0px;
+    margin:0px;
+}
+.container {
+    display: flex;
+    height:100vh;
+}
+
+.canvas-container {
+    flex-grow: 9;
+}
+
+.controls {
+    flex-grow: 3;
+}
