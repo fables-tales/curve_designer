@@ -1,14 +1,15 @@
 "use strict";
-var nComponents = 18;
+var nComponents = 125;
 
 var nPoints = 100;
 var baseCurve = makeBaseCurve();
 var points;
 
-function makeComponent(amplitude, frequency) {
+function makeComponent(amplitude, frequency, offset) {
     return {
         amplitude: amplitude,
-        frequency: frequency
+        frequency: frequency,
+        offset: offset,
     }
 }
 
@@ -30,10 +31,10 @@ function setupCanvas() {
 function makeBaseCurve() {
     var build = [];
 
-    build.push(makeComponent(1, 1));
+    build.push(makeComponent(1, 1, 0));
 
     while (build.length < nComponents) {
-        build.push(makeComponent(0,0));
+        build.push(makeComponent(0,0, 0));
     }
 
     return build;
@@ -43,7 +44,7 @@ function evaluate(curve, x) {
     var build = 0.0;
     for (var i = 0; i < curve.length; i++) {
         var component = curve[i];
-        build += component.amplitude*Math.sin(component.frequency*x);
+        build += component.amplitude*Math.sin(component.frequency*x+component.offset);
     }
 
     return build;
@@ -244,7 +245,7 @@ function main() {
             function(params) {
                 var build = [];
                 for (var i = 0; i < params.length; i++) {
-                    build.push(makeComponent(params[i][0], params[i][1]));
+                    build.push(makeComponent(params[i][0], params[i][1], params[i][2]));
                 }
                 var ctx = canvas.getContext("2d");
                 ctx.clearRect(0, 0, canvas.width, canvas.height);

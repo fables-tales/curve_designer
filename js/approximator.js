@@ -11,7 +11,7 @@ function compareArrays(a1, a2) {
     return equal;
 }
 function computeOscillator(params, x) {
-    if (!compareArrays(params.shape, [nComponents, 2])) {
+    if (!compareArrays(params.shape, [nComponents, 3])) {
         throw "nope"
     }
 
@@ -24,9 +24,12 @@ function computeOscillator(params, x) {
                 tf.mul(
                     tf.slice2d(params,[i,0], [1,1]),
                     tf.sin(
-                        tf.mul(
-                            tf.add(1.0, tf.slice2d(params, [i, 1], [1,1])),
-                            x
+                        tf.add(
+                            tf.mul(
+                                tf.add(1.0, tf.slice2d(params, [i, 1], [1,1])),
+                                x
+                            ),
+                            tf.slice2d(params, [i, 2], [1,1])
                         )
                     )
                 )
@@ -37,27 +40,28 @@ function computeOscillator(params, x) {
 }
 
 window.approximator = function(points, draw) {
-    var params = tf.tensor2d([
-        [1.0,0.0],
-        [0.25,2],
-        [0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0],
-        [0.0,0.0]
-    ]);
-    //var params = tf.randomUniform([18,2],0,0.1);
+    //var params = tf.tensor2d([
+    //    [1.0  , 0.0,Math.PI] ,
+    //    [0.0 , 2.0,0.0]   ,
+    //    [0    , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0] ,
+    //    [0.0  , 0.0,0.0]
+    //]);
+
+    var params = tf.randomUniform([nComponents, 3],-Math.PI, Math.PI);
 
     var draw = draw;
 
@@ -71,7 +75,7 @@ window.approximator = function(points, draw) {
         yActual.push(points[i][1]);
     }
 
-    var optimizer = tf.train.rmsprop(0.001);
+    var optimizer = tf.train.adam(0.01);
 
     var yActualTensor = tf.reshape(tf.tensor(yActual), [-1, 1, 1]);
 
@@ -80,10 +84,9 @@ window.approximator = function(points, draw) {
         var loss = tf.sum(tf.abs(tf.sub(yPred, yActualTensor)));
         loss.print();
         tfParams.data().then(function(data) {
-            tfParams.print();
             var build = [];
-            for (var i = 1; i < data.length; i += 2) {
-                build.push([data[i-1],data[i]+1]);
+            for (var i = 2; i < data.length; i += 3) {
+                build.push([data[i-2],data[i-1]+1,data[i]]);
             }
             draw(build);
         });
@@ -92,19 +95,31 @@ window.approximator = function(points, draw) {
 
     singlePass();
 
-
     var i = 0;
-    var c = 300;
+    var c1 = 300;
+    var c2 = 1000;
+    var c3 = 1000;
+    var optimizer = tf.train.adam(0.01);
+    var optimizer2 = tf.train.adam(0.0005);
+    var optimizer3 = tf.train.adam(0.0001);
     var interval = setInterval(function() {
         console.log(i);
+        console.log(optimizer);
         i += 1;
-        if (i == c) {
+        if (i == c1) {
+            optimizer = optimizer2;
+        }
+        if (i == c1+c2) {
+            optimizer = optimizer3;
+        }
+        if (i == c1+c2+c3) {
             clearInterval(interval);
         }
         optimizer.minimize(function() {
             return singlePass();
         }, false, [tfParams]);
     }, 1);
+
 
     //console.log(tfParams.print());
 }
