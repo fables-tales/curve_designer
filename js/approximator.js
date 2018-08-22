@@ -61,7 +61,7 @@ window.approximator = function(points, draw) {
     //    [0.0  , 0.0,0.0]
     //]);
 
-    var params = tf.randomUniform([nComponents, 3],-Math.PI, Math.PI);
+    var params = tf.randomUniform([nComponents, 3],0, 2*Math.PI);
 
     var draw = draw;
 
